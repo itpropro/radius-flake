@@ -15,7 +15,7 @@ Use the stable package:
 
 ```nix
 {
-  inputs.radius-flake.url = "github:<owner>/radius-flake";
+  inputs.radius-flake.url = "github:itpropro/radius-flake";
 
   outputs = { nixpkgs, radius-flake, ... }: {
     nixosConfigurations.example = nixpkgs.lib.nixosSystem {
@@ -44,7 +44,7 @@ The `rc` branch changes only the default aliases. Its default package points to 
 
 ```nix
 {
-  inputs.radius-flake.url = "github:<owner>/radius-flake/rc";
+  inputs.radius-flake.url = "github:itpropro/radius-flake/rc";
 }
 ```
 
@@ -82,5 +82,6 @@ This exposes `pkgs.rad`, `pkgs.rad-rc`, and `pkgs.bicep`.
 ## Notes
 
 - Supported systems in the first iteration are `x86_64-linux` and `aarch64-linux`.
+- CI publishes build outputs to the public Cachix cache at `https://itpropro.cachix.org`.
 - Bicep is bundled as a separate package and wired into `rad` with `BICEP`.
 - This repository does not add a Home Manager module in the first iteration.

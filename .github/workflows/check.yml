@@ -22,10 +22,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v31
+        uses: cachix/install-nix-action@v31.10.2
+
+      - name: Configure Cachix for pushes
+        if: github.event_name == 'push'
+        uses: cachix/cachix-action@v17
+        with:
+          name: itpropro
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Configure Cachix for pull requests
+        if: github.event_name == 'pull_request'
+        uses: cachix/cachix-action@v17
+        with:
+          name: itpropro
+          skipPush: true
 
       - name: Check formatting
         run: nix run nixpkgs#alejandra -- --check .
