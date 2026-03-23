@@ -1,0 +1,14 @@
+{
+  "stable": {
+    "version": "0.55.0",
+    "rev": "v0.55.0",
+    "srcHash": "sha256-GS3slw78yIWKKWaNLXQONYd6jwumEl7McXEgegCtyL4=",
+    "vendorHash": "sha256-6tGlXSlvPzDphyUWtlEa0sJV241LCA9PjQh9CSTbBIY="
+  },
+  "rc": {
+    "version": "0.56.0-rc1",
+    "rev": "v0.56.0-rc1",
+    "srcHash": "sha256-hnMcFtezbZ0ANh3rxewCMvgeyT/F/K49lMtUo1RJixA=",
+    "vendorHash": "sha256-+9WeaG/UizUNHFaFM36c4/ZGmWiYp0QyQxzUJYG0I/w="
+  }
+}

@@ -1,0 +1,40 @@
+name: Check flake
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.nix"
+      - "flake.lock"
+      - "nix/sources.json"
+      - ".github/workflows/check.yml"
+      - ".github/update-radius.sh"
+  pull_request:
+    paths:
+      - "**/*.nix"
+      - "flake.lock"
+      - "nix/sources.json"
+      - ".github/workflows/check.yml"
+      - ".github/update-radius.sh"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Check formatting
+        run: nix run nixpkgs#alejandra -- --check .
+
+      - name: Evaluate supported systems
+        run: |
+          nix eval .#packages.x86_64-linux.rad.meta.mainProgram >/dev/null
+          nix eval '.#packages.aarch64-linux.rad.meta.mainProgram' >/dev/null
+          nix eval '.#packages.aarch64-linux."rad-rc".meta.mainProgram' >/dev/null
+
+      - name: Run flake checks
+        run: nix flake check
