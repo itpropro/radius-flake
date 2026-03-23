@@ -2,19 +2,19 @@ name: Check flake
 
 on:
   push:
-    branches: [main]
+    branches: [main, rc]
     paths:
       - "**/*.nix"
       - "flake.lock"
       - "nix/sources.json"
-      - ".github/workflows/check.yml"
+      - ".github/workflows/*.yml"
       - ".github/update-radius.sh"
   pull_request:
     paths:
       - "**/*.nix"
       - "flake.lock"
       - "nix/sources.json"
-      - ".github/workflows/check.yml"
+      - ".github/workflows/*.yml"
       - ".github/update-radius.sh"
 
 jobs:

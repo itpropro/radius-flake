@@ -74,5 +74,5 @@ jobs:
           if ! git diff --quiet; then
             git add flake.nix
             git commit -m "chore(branch): set rc default aliases"
-            git push -u origin rc
+            git push --force-with-lease -u origin rc
           fi
