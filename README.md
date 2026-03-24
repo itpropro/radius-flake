@@ -69,6 +69,36 @@ nix run .#rad -- --help
 nix run .#rad-rc -- --help
 ```
 
+## Home Manager Usage
+
+Import the module from this flake and enable `rad`:
+
+```nix
+{ ... }: {
+  imports = [ radius-flake.homeManagerModules.default ];
+
+  programs.rad.enable = true;
+}
+```
+
+The module installs this flake's default package for your branch:
+
+- `main` -> stable `rad`
+- `rc` -> `rad-rc`
+
+To use the RC package explicitly from `main`, override the package:
+
+```nix
+{ pkgs, ... }: {
+  imports = [ radius-flake.homeManagerModules.default ];
+
+  programs.rad = {
+    enable = true;
+    package = radius-flake.packages.${pkgs.stdenv.hostPlatform.system}."rad-rc";
+  };
+}
+```
+
 ## Overlay Usage
 
 ```nix
@@ -84,4 +114,4 @@ This exposes `pkgs.rad`, `pkgs.rad-rc`, and `pkgs.bicep`.
 - Supported systems in the first iteration are `x86_64-linux` and `aarch64-linux`.
 - CI publishes build outputs to the public Cachix cache at `https://itpropro.cachix.org`.
 - Bicep is bundled as a separate package and wired into `rad` with `BICEP`.
-- This repository does not add a Home Manager module in the first iteration.
+- The Home Manager module only installs the wrapped CLI package and exposes a package override.

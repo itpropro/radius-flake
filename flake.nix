@@ -41,11 +41,37 @@
         inherit defaultChannel;
       };
 
+    homeManagerModules = let
+      rad = import ./nix/modules/home-manager.nix {inherit self;};
+    in {
+      default = rad;
+      inherit rad;
+    };
+
     formatter = forAllSystems (pkgs: _system: pkgs.alejandra);
 
     checks = forAllSystems (
       pkgs: system: let
         packages = self.packages.${system};
+        homeModule = self.homeManagerModules.default;
+        evalHomeModule = config:
+          lib.evalModules {
+            modules = [
+              homeModule
+              {
+                options.home.packages = lib.mkOption {
+                  type = lib.types.listOf lib.types.package;
+                  default = [];
+                };
+
+                config = config;
+              }
+            ];
+
+            specialArgs = {
+              inherit pkgs;
+            };
+          };
       in {
         rad = packages.rad;
         "rad-rc" = packages."rad-rc";
@@ -88,6 +114,27 @@
 
             touch $out
           '';
+        smoke-home-manager-default = let
+          eval = evalHomeModule {
+            programs.rad.enable = true;
+          };
+        in
+          assert builtins.length eval.config.home.packages == 1;
+            pkgs.runCommand "rad-home-manager-default" {} ''
+              test "${builtins.elemAt eval.config.home.packages 0}" = "${packages.default}"
+              touch $out
+            '';
+        smoke-home-manager-rc-override = let
+          eval = evalHomeModule {
+            programs.rad.enable = true;
+            programs.rad.package = packages."rad-rc";
+          };
+        in
+          assert builtins.length eval.config.home.packages == 1;
+            pkgs.runCommand "rad-home-manager-rc-override" {} ''
+              test "${builtins.elemAt eval.config.home.packages 0}" = "${packages."rad-rc"}"
+              touch $out
+            '';
       }
     );
   };
