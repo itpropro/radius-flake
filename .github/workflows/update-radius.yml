@@ -10,8 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    outputs:
-      should_sync_rc: ${{ steps.update.outputs.should_sync_rc }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
@@ -44,41 +42,3 @@ jobs:
         with:
           commit_message: ${{ steps.update.outputs.commit_message }}
           file_pattern: nix/sources.json
-
-  sync-rc:
-    needs: update-radius
-    if: needs.update-radius.outputs.should_sync_rc == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6.0.2
-        with:
-          fetch-depth: 0
-
-      - name: Sync rc branch
-        run: |
-          git fetch origin main rc || true
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          if git ls-remote --exit-code --heads origin rc >/dev/null 2>&1; then
-            git checkout -B rc origin/rc
-            git rebase origin/main
-          else
-            git checkout -B rc origin/main
-          fi
-
-          python <<'PY'
-          from pathlib import Path
-          path = Path("flake.nix")
-          text = path.read_text()
-          path.write_text(text.replace('defaultChannel = "stable";', 'defaultChannel = "rc";'))
-          PY
-
-          if ! git diff --quiet; then
-            git add flake.nix
-            git commit -m "chore(branch): set rc default aliases"
-            git push --force-with-lease -u origin rc
-          fi

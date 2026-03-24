@@ -73,15 +73,6 @@
             };
           };
       in {
-        rad = packages.rad;
-        "rad-rc" = packages."rad-rc";
-        smoke-help =
-          pkgs.runCommand "rad-help" {
-            nativeBuildInputs = [packages.rad];
-          } ''
-            ${packages.rad}/bin/rad --help >/dev/null
-            touch $out
-          '';
         smoke-version =
           pkgs.runCommand "rad-version" {
             nativeBuildInputs = [packages.rad pkgs.jq];
@@ -121,7 +112,7 @@
         in
           assert builtins.length eval.config.home.packages == 1;
             pkgs.runCommand "rad-home-manager-default" {} ''
-              test "${builtins.elemAt eval.config.home.packages 0}" = "${packages.default}"
+              test "${builtins.elemAt eval.config.home.packages 0}" = "${packages.rad}"
               touch $out
             '';
         smoke-home-manager-rc-override = let

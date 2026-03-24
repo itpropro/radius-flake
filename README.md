@@ -38,28 +38,6 @@ Or use the RC package from `main`:
 radius-flake.packages.${pkgs.stdenv.hostPlatform.system}."rad-rc"
 ```
 
-## Install From `rc`
-
-The `rc` branch changes only the default aliases. Its default package points to the latest RC:
-
-```nix
-{
-  inputs.radius-flake.url = "github:itpropro/radius-flake/rc";
-}
-```
-
-Then use either:
-
-```nix
-radius-flake.packages.${pkgs.stdenv.hostPlatform.system}.default
-```
-
-or:
-
-```nix
-radius-flake.packages.${pkgs.stdenv.hostPlatform.system}."rad-rc"
-```
-
 ## Commands
 
 ```bash
@@ -81,10 +59,7 @@ Import the module from this flake and enable `rad`:
 }
 ```
 
-The module installs this flake's default package for your branch:
-
-- `main` -> stable `rad`
-- `rc` -> `rad-rc`
+The module installs this flake's default package, which is stable `rad`.
 
 To use the RC package explicitly from `main`, override the package:
 

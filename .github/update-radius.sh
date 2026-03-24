@@ -154,13 +154,11 @@ fi
 
 if ! $stable_changed && ! $rc_changed; then
   set_output should_update false
-  set_output should_sync_rc false
   exit 0
 fi
 
 if $only_check; then
   set_output should_update true
-  set_output should_sync_rc true
   exit 0
 fi
 
@@ -189,5 +187,4 @@ if $rc_changed; then
 fi
 
 set_output should_update true
-set_output should_sync_rc true
 set_output commit_message "$commit_message"
