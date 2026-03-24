@@ -36,6 +36,33 @@ current_rev() {
   jq -r --arg channel "$channel" '.[$channel].rev' "$sources_file"
 }
 
+current_commit() {
+  local channel="$1"
+  jq -r --arg channel "$channel" '.[$channel].commit // empty' "$sources_file"
+}
+
+resolve_tag_commit() {
+  local rev="$1"
+  local ref_json object_type object_sha
+
+  ref_json="$(gh api "repos/radius-project/radius/git/ref/tags/${rev}")"
+  object_type="$(jq -r '.object.type' <<<"$ref_json")"
+  object_sha="$(jq -r '.object.sha' <<<"$ref_json")"
+
+  if [ "$object_type" = "commit" ]; then
+    printf '%s\n' "$object_sha"
+    return 0
+  fi
+
+  if [ "$object_type" = "tag" ]; then
+    gh api "repos/radius-project/radius/git/tags/${object_sha}" --jq '.object.sha'
+    return 0
+  fi
+
+  printf 'Unsupported tag object type %s for %s\n' "$object_type" "$rev" >&2
+  exit 1
+}
+
 update_source_field() {
   local channel="$1"
   local field="$2"
@@ -49,15 +76,17 @@ update_source_field() {
 prepare_channel_update() {
   local channel="$1"
   local rev="$2"
+  local commit="$3"
   local version="${rev#v}"
   local tmp
   tmp="$(mktemp)"
   jq \
     --arg channel "$channel" \
+    --arg commit "$commit" \
     --arg version "$version" \
     --arg rev "$rev" \
     --arg fake "$fake_hash" \
-    '.[$channel].version = $version | .[$channel].rev = $rev | .[$channel].srcHash = $fake | .[$channel].vendorHash = $fake' \
+    '.[$channel].commit = $commit | .[$channel].version = $version | .[$channel].rev = $rev | .[$channel].srcHash = $fake | .[$channel].vendorHash = $fake' \
     "$sources_file" >"$tmp"
   mv "$tmp" "$sources_file"
 }
@@ -97,8 +126,11 @@ update_channel() {
   local channel="$1"
   local rev="$2"
   local package_attr="$3"
+  local commit
 
-  prepare_channel_update "$channel" "$rev"
+  commit="$(resolve_tag_commit "$rev")"
+
+  prepare_channel_update "$channel" "$rev" "$commit"
   resolve_hash "$channel" "$package_attr" srcHash
   resolve_hash "$channel" "$package_attr" vendorHash
   nix build "$package_attr" --no-link >/dev/null
@@ -106,15 +138,17 @@ update_channel() {
 
 stable_rev="$(gh api repos/radius-project/radius/releases --jq 'map(select(.draft == false and .prerelease == false)) | first.tag_name')"
 rc_rev="$(gh api repos/radius-project/radius/releases --jq 'map(select(.draft == false and .prerelease == true)) | first.tag_name')"
+stable_commit="$(resolve_tag_commit "$stable_rev")"
+rc_commit="$(resolve_tag_commit "$rc_rev")"
 
 stable_changed=false
 rc_changed=false
 
-if [ "$(current_rev stable)" != "$stable_rev" ]; then
+if [ "$(current_rev stable)" != "$stable_rev" ] || [ "$(current_commit stable)" != "$stable_commit" ]; then
   stable_changed=true
 fi
 
-if [ "$(current_rev rc)" != "$rc_rev" ]; then
+if [ "$(current_rev rc)" != "$rc_rev" ] || [ "$(current_commit rc)" != "$rc_commit" ]; then
   rc_changed=true
 fi
 

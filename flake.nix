@@ -9,6 +9,7 @@
   }: let
     lib = nixpkgs.lib;
     defaultChannel = "stable";
+    sources = builtins.fromJSON (builtins.readFile ./nix/sources.json);
     systems = import ./nix/systems.nix;
     forAllSystems = f: lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system} system);
   in {
@@ -53,6 +54,38 @@
             nativeBuildInputs = [packages.rad];
           } ''
             ${packages.rad}/bin/rad --help >/dev/null
+            touch $out
+          '';
+        smoke-version =
+          pkgs.runCommand "rad-version" {
+            nativeBuildInputs = [packages.rad pkgs.jq];
+          } ''
+            export HOME="$TMPDIR/home"
+            mkdir -p "$HOME"
+
+            version_json="$(${packages.rad}/bin/rad version --cli --output json)"
+
+            if ! printf '%s' "$version_json" | jq -e --arg release '${sources.stable.version}' --arg version '${sources.stable.rev}' --arg commit '${sources.stable.commit}' '.release == $release and .version == $version and .commit == $commit' >/dev/null; then
+              printf 'Unexpected version output:\n%s\n' "$version_json" >&2
+              exit 1
+            fi
+
+            touch $out
+          '';
+        smoke-version-rc =
+          pkgs.runCommand "rad-version-rc" {
+            nativeBuildInputs = [packages."rad-rc" pkgs.jq];
+          } ''
+            export HOME="$TMPDIR/home"
+            mkdir -p "$HOME"
+
+            version_json="$(${packages."rad-rc"}/bin/rad version --cli --output json)"
+
+            if ! printf '%s' "$version_json" | jq -e --arg release '${sources.rc.version}' --arg version '${sources.rc.rev}' --arg commit '${sources.rc.commit}' '.release == $release and .version == $version and .commit == $commit' >/dev/null; then
+              printf 'Unexpected RC version output:\n%s\n' "$version_json" >&2
+              exit 1
+            fi
+
             touch $out
           '';
       }

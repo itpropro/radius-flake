@@ -1,11 +1,13 @@
 {
   "stable": {
+    "commit": "4142176e438a8e81b21f5cd41b85f3ab73ed86b2",
     "version": "0.55.0",
     "rev": "v0.55.0",
     "srcHash": "sha256-GS3slw78yIWKKWaNLXQONYd6jwumEl7McXEgegCtyL4=",
     "vendorHash": "sha256-6tGlXSlvPzDphyUWtlEa0sJV241LCA9PjQh9CSTbBIY="
   },
   "rc": {
+    "commit": "be4c52f1f77b24a88aa1714210e16b98b0f0a237",
     "version": "0.56.0-rc1",
     "rev": "v0.56.0-rc1",
     "srcHash": "sha256-hnMcFtezbZ0ANh3rxewCMvgeyT/F/K49lMtUo1RJixA=",

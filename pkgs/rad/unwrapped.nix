@@ -3,7 +3,14 @@
   buildGo126Module,
   fetchFromGitHub,
   source,
-}:
+}: let
+  release = lib.removePrefix "v" source.rev;
+  channel =
+    if lib.hasInfix "-" release
+    then release
+    else builtins.head (builtins.match "([0-9]+\\.[0-9]+)\\..*" release);
+  versionPackage = "github.com/radius-project/radius/pkg/version";
+in
 buildGo126Module {
   pname = "rad-unwrapped";
   inherit (source) version;
@@ -17,7 +24,18 @@ buildGo126Module {
 
   subPackages = ["cmd/rad"];
   vendorHash = source.vendorHash;
-  ldflags = ["-s" "-w"];
+  ldflags = [
+    "-s"
+    "-w"
+    "-X"
+    "${versionPackage}.channel=${channel}"
+    "-X"
+    "${versionPackage}.commit=${source.commit}"
+    "-X"
+    "${versionPackage}.release=${release}"
+    "-X"
+    "${versionPackage}.version=${source.rev}"
+  ];
 
   meta = {
     description = "Radius CLI";
