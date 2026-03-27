@@ -1,9 +1,9 @@
 {
   "stable": {
-    "commit": "0fc7dda81cbaf6ce3610f03166870e4bcf376a89",
-    "version": "0.56.0",
-    "rev": "v0.56.0",
-    "srcHash": "sha256-kAZx5f4ucewvMo/QzfbAZ05OrFcZlHWz4vfbFAfo++s=",
+    "commit": "3c2a52dc4f69afc0f7d7b40b3bf8d80da81e972d",
+    "version": "0.56.1",
+    "rev": "v0.56.1",
+    "srcHash": "sha256-FJFuJHU7PaI/GBxvwgMAMLEeC4v4uZHNbZD0hurLHK8=",
     "vendorHash": "sha256-+9WeaG/UizUNHFaFM36c4/ZGmWiYp0QyQxzUJYG0I/w="
   },
   "rc": {
