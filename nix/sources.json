@@ -1,16 +1,16 @@
 {
   "stable": {
-    "commit": "2dd62c26562621956d78b465e59ea314363faca7",
-    "version": "0.57.1",
-    "rev": "v0.57.1",
-    "srcHash": "sha256-spNaTZ33sdf3F5lFlOApE5xFkcZf9j4VmYUuDVIj8QE=",
-    "vendorHash": "sha256-FSov/lQMH07dijwvqRaXPtjBEWAGlEV/UwL8UnciAM4="
+    "commit": "d8289818dc121527659b781707500a1c9d46c2fe",
+    "version": "0.58.0",
+    "rev": "v0.58.0",
+    "srcHash": "sha256-Bc3nGL4Mu4eOTjFOOaTqZlLf8zAKfCElY5Fk8GzDigg=",
+    "vendorHash": "sha256-Bee3jFCg1CxopCzlNdkRh9wwWgWV435GEMNICYn3ZEA="
   },
   "rc": {
-    "commit": "1bd0fa7d64c073b7cccc27eca4fae350ec82a219",
-    "version": "0.57.0-rc1",
-    "rev": "v0.57.0-rc1",
-    "srcHash": "sha256-J0oojpHJUbWNzUdiJGSOjck1l2NIowThX+R2eNay3r8=",
-    "vendorHash": "sha256-FSov/lQMH07dijwvqRaXPtjBEWAGlEV/UwL8UnciAM4="
+    "commit": "33a158d694c0ac956502e27e20bd8fa1296d14ce",
+    "version": "0.58.0-rc2",
+    "rev": "v0.58.0-rc2",
+    "srcHash": "sha256-tKixFlCr531RHidPQbY4DOV+eb80V6xVdFGao638DWg=",
+    "vendorHash": "sha256-Bee3jFCg1CxopCzlNdkRh9wwWgWV435GEMNICYn3ZEA="
   }
 }
