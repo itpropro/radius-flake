@@ -1,16 +1,16 @@
 {
   "stable": {
-    "commit": "d8289818dc121527659b781707500a1c9d46c2fe",
-    "version": "0.58.0",
-    "rev": "v0.58.0",
-    "srcHash": "sha256-Bc3nGL4Mu4eOTjFOOaTqZlLf8zAKfCElY5Fk8GzDigg=",
-    "vendorHash": "sha256-Bee3jFCg1CxopCzlNdkRh9wwWgWV435GEMNICYn3ZEA="
+    "commit": "2bf2c25fcdde20d4cba1371618829bbbe1f9a997",
+    "version": "0.59.0",
+    "rev": "v0.59.0",
+    "srcHash": "sha256-hoQbJkA39+SCnQmITsnYMN51LztF/DW4RSNPGmRj0Jw=",
+    "vendorHash": "sha256-Jx7D8BJfpGCayb7yiGgbAKvfVMoCdfAaFWxLUrMaa34="
   },
   "rc": {
-    "commit": "33a158d694c0ac956502e27e20bd8fa1296d14ce",
-    "version": "0.58.0-rc2",
-    "rev": "v0.58.0-rc2",
-    "srcHash": "sha256-tKixFlCr531RHidPQbY4DOV+eb80V6xVdFGao638DWg=",
-    "vendorHash": "sha256-Bee3jFCg1CxopCzlNdkRh9wwWgWV435GEMNICYn3ZEA="
+    "commit": "aeaa9fff4e03cf9fb97b5e7be0206dd60c11e631",
+    "version": "0.59.0-rc1",
+    "rev": "v0.59.0-rc1",
+    "srcHash": "sha256-9TLiaAsbuNRLz31RFlxC2ho5ws5IyUXCo39OPhEl4Rg=",
+    "vendorHash": "sha256-Jx7D8BJfpGCayb7yiGgbAKvfVMoCdfAaFWxLUrMaa34="
   }
 }
