@@ -73,6 +73,39 @@
             };
           };
       in {
+        smoke-bicep =
+          pkgs.runCommand "bicep-smoke" {
+            nativeBuildInputs =
+              [packages.bicep]
+              ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [pkgs.patchelf];
+          } ''
+            export HOME="$TMPDIR/home"
+            export DOTNET_BUNDLE_EXTRACT_BASE_DIR="$TMPDIR/dotnet-bundle"
+            mkdir -p "$HOME" "$DOTNET_BUNDLE_EXTRACT_BASE_DIR"
+
+            ${lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
+              interpreter="$(patchelf --print-interpreter ${packages.bicep}/bin/bicep)"
+              case "$interpreter" in
+                /nix/store/*) ;;
+                *)
+                  printf 'Unexpected Bicep interpreter: %s\n' "$interpreter" >&2
+                  exit 1
+                  ;;
+              esac
+            ''}
+
+            ${packages.bicep}/bin/bicep --version
+
+            cat > main.bicep <<'EOF'
+            param greeting string = 'hello'
+            output message string = greeting
+            EOF
+
+            ${packages.bicep}/bin/bicep build main.bicep --outfile main.json
+            test -s main.json
+
+            touch $out
+          '';
         smoke-version =
           pkgs.runCommand "rad-version" {
             nativeBuildInputs = [packages.rad pkgs.jq];
@@ -82,7 +115,7 @@
 
             version_json="$(${packages.rad}/bin/rad version --cli --output json)"
 
-            if ! printf '%s' "$version_json" | jq -e --arg release '${sources.stable.version}' --arg version '${sources.stable.rev}' --arg commit '${sources.stable.commit}' '.release == $release and .version == $version and .commit == $commit' >/dev/null; then
+            if ! printf '%s' "$version_json" | jq -e --arg release '${sources.stable.version}' --arg version '${sources.stable.rev}' --arg bicep '${packages.bicep.version}' --arg commit '${sources.stable.commit}' '.release == $release and .version == $version and .bicep == $bicep and .commit == $commit' >/dev/null; then
               printf 'Unexpected version output:\n%s\n' "$version_json" >&2
               exit 1
             fi
@@ -98,7 +131,7 @@
 
             version_json="$(${packages."rad-rc"}/bin/rad version --cli --output json)"
 
-            if ! printf '%s' "$version_json" | jq -e --arg release '${sources.rc.version}' --arg version '${sources.rc.rev}' --arg commit '${sources.rc.commit}' '.release == $release and .version == $version and .commit == $commit' >/dev/null; then
+            if ! printf '%s' "$version_json" | jq -e --arg release '${sources.rc.version}' --arg version '${sources.rc.rev}' --arg bicep '${packages.bicep.version}' --arg commit '${sources.rc.commit}' '.release == $release and .version == $version and .bicep == $bicep and .commit == $commit' >/dev/null; then
               printf 'Unexpected RC version output:\n%s\n' "$version_json" >&2
               exit 1
             fi
