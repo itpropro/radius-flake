@@ -49,6 +49,38 @@ jobs:
           nix eval .#packages.x86_64-linux.rad.meta.mainProgram >/dev/null
           nix eval '.#packages.aarch64-linux.rad.meta.mainProgram' >/dev/null
           nix eval '.#packages.aarch64-linux."rad-rc".meta.mainProgram' >/dev/null
+          nix eval '.#packages.aarch64-darwin.rad.meta.mainProgram' >/dev/null
+          nix eval '.#packages.aarch64-darwin."rad-rc".meta.mainProgram' >/dev/null
+          nix eval '.#packages.aarch64-darwin.bicep.meta.mainProgram' >/dev/null
 
       - name: Run flake checks
         run: nix flake check
+
+  check-darwin:
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31.10.2
+
+      - name: Configure Cachix for pushes
+        if: github.event_name == 'push'
+        uses: cachix/cachix-action@v17
+        with:
+          name: itpropro
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Configure Cachix for pull requests
+        if: github.event_name == 'pull_request'
+        uses: cachix/cachix-action@v17
+        with:
+          name: itpropro
+          skipPush: true
+
+      - name: Run flake checks
+        run: nix flake check --print-build-logs
+
+      - name: Run Bicep
+        run: nix run .#bicep -- --version
