@@ -1,5 +1,9 @@
 {
+  autoPatchelfHook,
   lib,
+  icu,
+  openssl,
+  stdenv,
   stdenvNoCC,
   fetchurl,
 }: let
@@ -32,6 +36,14 @@ in
     };
 
     dontUnpack = true;
+    dontStrip = true;
+
+    nativeBuildInputs = lib.optionals stdenvNoCC.hostPlatform.isLinux [autoPatchelfHook];
+    buildInputs = lib.optionals stdenvNoCC.hostPlatform.isLinux [stdenv.cc.cc.lib];
+    runtimeDependencies = lib.optionals stdenvNoCC.hostPlatform.isLinux [
+      icu
+      (lib.getLib openssl)
+    ];
 
     installPhase = ''
       runHook preInstall
