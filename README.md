@@ -86,7 +86,7 @@ This exposes `pkgs.rad`, `pkgs.rad-rc`, and `pkgs.bicep`.
 
 ## Notes
 
-- Supported systems in the first iteration are `x86_64-linux` and `aarch64-linux`.
+- Supported systems are `x86_64-linux`, `aarch64-linux`, and `aarch64-darwin`.
 - CI publishes build outputs to the public Cachix cache at `https://itpropro.cachix.org`.
 - Bicep is bundled as a separate package and wired into `rad` with `BICEP`.
 - The Home Manager module only installs the wrapped CLI package and exposes a package override.

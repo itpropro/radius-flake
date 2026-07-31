@@ -13,6 +13,10 @@
       asset = "bicep-linux-arm64";
       hash = "sha256-b647nzGYUDH5GWVT0vEieZ3aFzr7gidwrmQ1if70nQo=";
     };
+    aarch64-darwin = {
+      asset = "bicep-osx-arm64";
+      hash = "sha256-/Mz9lbkq56qavFZMOBPB1HMIkXNdLhVQiVB/LYSSfC8=";
+    };
   };
   release =
     releases.${stdenvNoCC.hostPlatform.system}

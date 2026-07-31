@@ -43,6 +43,10 @@ in
       changelog = "https://github.com/radius-project/radius/releases/tag/${source.rev}";
       license = lib.licenses.asl20;
       mainProgram = "rad";
-      platforms = ["x86_64-linux" "aarch64-linux"];
+      platforms = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
     };
   }

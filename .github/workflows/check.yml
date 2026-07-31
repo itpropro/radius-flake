@@ -49,6 +49,9 @@ jobs:
           nix eval .#packages.x86_64-linux.rad.meta.mainProgram >/dev/null
           nix eval '.#packages.aarch64-linux.rad.meta.mainProgram' >/dev/null
           nix eval '.#packages.aarch64-linux."rad-rc".meta.mainProgram' >/dev/null
+          nix eval '.#packages.aarch64-darwin.rad.meta.mainProgram' >/dev/null
+          nix eval '.#packages.aarch64-darwin."rad-rc".meta.mainProgram' >/dev/null
+          nix eval '.#packages.aarch64-darwin.bicep.meta.mainProgram' >/dev/null
 
       - name: Run flake checks
         run: nix flake check
