@@ -3,7 +3,7 @@
 [![Stable Radius version](https://img.shields.io/github/v/release/itpropro/radius-flake?display_name=tag&sort=semver&label=stable)](https://github.com/itpropro/radius-flake/releases/latest)
 [![Radius RC version](https://img.shields.io/github/v/release/itpropro/radius-flake?display_name=tag&include_prereleases&sort=semver&filter=*-rc*&label=rc)](https://github.com/itpropro/radius-flake/releases)
 
-Standalone Nix flake for the `rad` CLI from [Radius](https://github.com/radius-project/radius). See [radius.dev](https://radius.dev/) for project documentation.
+Standalone Nix flake for the `rad` CLI from [Radius](https://github.com/radius-project/radius).
 
 ## What It Provides
 
