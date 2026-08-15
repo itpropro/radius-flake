@@ -1,6 +1,7 @@
 name: Check flake
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
@@ -17,26 +18,31 @@ on:
       - ".github/workflows/*.yml"
       - ".github/update-radius.sh"
 
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v31.10.2
+        uses: cachix/install-nix-action@51f3067b56fe8ae331890c77d4e454f6d60615ff # v31.10.2
 
       - name: Configure Cachix for pushes
         if: github.event_name == 'push'
-        uses: cachix/cachix-action@v17
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: itpropro
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Configure Cachix for pull requests
         if: github.event_name == 'pull_request'
-        uses: cachix/cachix-action@v17
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: itpropro
           skipPush: true
@@ -60,21 +66,23 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v31.10.2
+        uses: cachix/install-nix-action@51f3067b56fe8ae331890c77d4e454f6d60615ff # v31.10.2
 
       - name: Configure Cachix for pushes
         if: github.event_name == 'push'
-        uses: cachix/cachix-action@v17
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: itpropro
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Configure Cachix for pull requests
         if: github.event_name == 'pull_request'
-        uses: cachix/cachix-action@v17
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: itpropro
           skipPush: true
@@ -86,21 +94,23 @@ jobs:
     runs-on: macos-26
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v31.10.2
+        uses: cachix/install-nix-action@51f3067b56fe8ae331890c77d4e454f6d60615ff # v31.10.2
 
       - name: Configure Cachix for pushes
         if: github.event_name == 'push'
-        uses: cachix/cachix-action@v17
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: itpropro
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Configure Cachix for pull requests
         if: github.event_name == 'pull_request'
-        uses: cachix/cachix-action@v17
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: itpropro
           skipPush: true
@@ -110,3 +120,44 @@ jobs:
 
       - name: Run Bicep
         run: nix run .#bicep -- --version
+
+  release:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [check, check-linux-arm64, check-darwin]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: supported-radius-releases
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Publish supported Radius releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          stable_rev="$(jq -r '.stable.rev' nix/sources.json)"
+          stable_commit="$(jq -r '.stable.commit' nix/sources.json)"
+          rc_rev="$(jq -r '.rc.rev' nix/sources.json)"
+          rc_commit="$(jq -r '.rc.commit' nix/sources.json)"
+
+          if ! gh release view "$stable_rev" >/dev/null 2>&1; then
+            gh release create "$stable_rev" \
+              --target "$GITHUB_SHA" \
+              --title "Radius $stable_rev (stable)" \
+              --notes "Packages Radius $stable_rev ($stable_commit) as the stable rad package." \
+              --latest
+          fi
+
+          if ! gh release view "$rc_rev" >/dev/null 2>&1; then
+            gh release create "$rc_rev" \
+              --target "$GITHUB_SHA" \
+              --title "Radius $rc_rev (RC)" \
+              --notes "Packages Radius $rc_rev ($rc_commit) as the rad-rc package." \
+              --prerelease \
+              --latest=false
+          fi
