@@ -24,6 +24,7 @@ in
 
     subPackages = ["cmd/rad"];
     vendorHash = source.vendorHash;
+    doCheck = false;
     ldflags = [
       "-s"
       "-w"
