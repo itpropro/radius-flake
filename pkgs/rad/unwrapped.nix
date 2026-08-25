@@ -34,6 +34,8 @@ in
       "-X"
       "${versionPackage}.release=${release}"
       "-X"
+      "${versionPackage}.chartVersion=${release}"
+      "-X"
       "${versionPackage}.version=${source.rev}"
     ];
 

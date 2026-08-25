@@ -108,15 +108,24 @@
           '';
         smoke-version =
           pkgs.runCommand "rad-version" {
-            nativeBuildInputs = [packages.rad pkgs.jq];
+            nativeBuildInputs = [packages.rad pkgs.binutils pkgs.jq];
           } ''
             export HOME="$TMPDIR/home"
             mkdir -p "$HOME"
 
             version_json="$(${packages.rad}/bin/rad version --cli --output json)"
+            strings ${packages.rad-unwrapped}/bin/rad > embedded-strings
+            release_occurrences="$(grep -Fxc '${sources.stable.version}' embedded-strings || true)"
 
             if ! printf '%s' "$version_json" | jq -e --arg release '${sources.stable.version}' --arg version '${sources.stable.rev}' --arg bicep '${packages.bicep.version}' --arg commit '${sources.stable.commit}' '.release == $release and .version == $version and .bicep == $bicep and .commit == $commit' >/dev/null; then
               printf 'Unexpected version output:\n%s\n' "$version_json" >&2
+              exit 1
+            fi
+
+            # Radius also uses 0.42.42-dev as an upgrade-preflight constant, so
+            # the release must occur twice: once for release and once for chartVersion.
+            if [ "$release_occurrences" -ne 2 ]; then
+              printf 'Expected release and chart version in rad binary, found %s occurrences\n' "$release_occurrences" >&2
               exit 1
             fi
 
@@ -124,15 +133,23 @@
           '';
         smoke-version-rc =
           pkgs.runCommand "rad-version-rc" {
-            nativeBuildInputs = [packages."rad-rc" pkgs.jq];
+            nativeBuildInputs = [packages."rad-rc" pkgs.binutils pkgs.jq];
           } ''
             export HOME="$TMPDIR/home"
             mkdir -p "$HOME"
 
             version_json="$(${packages."rad-rc"}/bin/rad version --cli --output json)"
+            strings ${packages."rad-rc-unwrapped"}/bin/rad > embedded-strings
+            release_occurrences="$(grep -Fxc '${sources.rc.version}' embedded-strings || true)"
 
             if ! printf '%s' "$version_json" | jq -e --arg release '${sources.rc.version}' --arg version '${sources.rc.rev}' --arg bicep '${packages.bicep.version}' --arg commit '${sources.rc.commit}' '.release == $release and .version == $version and .bicep == $bicep and .commit == $commit' >/dev/null; then
               printf 'Unexpected RC version output:\n%s\n' "$version_json" >&2
+              exit 1
+            fi
+
+            # Prerelease channel, release, and chartVersion all use the release value.
+            if [ "$release_occurrences" -ne 3 ]; then
+              printf 'Expected channel, release, and chart version in RC rad binary, found %s occurrences\n' "$release_occurrences" >&2
               exit 1
             fi
 
