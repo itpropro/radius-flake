@@ -17,7 +17,9 @@
     };
   };
 
-  bicep = pkgs.callPackage ./pkgs/bicep/default.nix {};
+  bicep = pkgs.callPackage ./pkgs/bicep/default.nix {
+    source = sources.bicep;
+  };
   stable = mkRadPackages sources.stable;
   rc = mkRadPackages sources.rc;
   defaultPackage =

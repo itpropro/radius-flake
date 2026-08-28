@@ -1,4 +1,12 @@
 {
+  "bicep": {
+    "version": "0.42.1",
+    "hashes": {
+      "x86_64-linux": "sha256-rtkOssaabuK9cNwNQ1RAisTQT9mRHT7I4M10rRc+cTk=",
+      "aarch64-linux": "sha256-sBrDu1JZCW375UgTilONHE5KVeb4fzgn4imfvC1OZ5Y=",
+      "aarch64-darwin": "sha256-HGZTOvTU1H+HViPYgHTSjKf+fp3B94OmJXDockcArKE="
+    }
+  },
   "stable": {
     "commit": "694528df87202b3f092ad0a9e81adaebd4e49a8b",
     "version": "0.60.0",

@@ -2,6 +2,7 @@
 
 [![Stable Radius version](https://img.shields.io/github/v/release/itpropro/radius-flake?display_name=tag&sort=semver&label=stable)](https://github.com/itpropro/radius-flake/releases/latest)
 [![Radius RC version](https://img.shields.io/github/v/release/itpropro/radius-flake?display_name=tag&include_prereleases&sort=semver&filter=*-rc*&label=rc)](https://github.com/itpropro/radius-flake/releases)
+[![Bicep version](https://img.shields.io/badge/Bicep-0.42.1-blue)](https://github.com/Azure/bicep/releases/tag/v0.42.1)
 
 Standalone Nix flake for the `rad` CLI from [Radius](https://github.com/radius-project/radius).
 

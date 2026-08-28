@@ -9,6 +9,8 @@ ci=false
 only_check=false
 fake_hash="sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 sources_file="nix/sources.json"
+readme_file="README.md"
+bicep_version_file="pkg/cli/bicep/tools/download_tools.go"
 
 for arg in "$@"; do
   case "$arg" in
@@ -41,6 +43,10 @@ current_commit() {
   jq -r --arg channel "$channel" '.[$channel].commit // empty' "$sources_file"
 }
 
+current_bicep_version() {
+  jq -r '.bicep.version' "$sources_file"
+}
+
 resolve_tag_commit() {
   local rev="$1"
   local ref_json object_type object_sha
@@ -61,6 +67,58 @@ resolve_tag_commit() {
 
   printf 'Unsupported tag object type %s for %s\n' "$object_type" "$rev" >&2
   exit 1
+}
+
+resolve_bicep_version() {
+  local rev="$1"
+  local source version
+
+  source="$(gh api "repos/radius-project/radius/contents/${bicep_version_file}?ref=${rev}" --jq '.content' | base64 --decode)"
+  version="$(sed -n 's/^[[:space:]]*bicepVersion[[:space:]]*=[[:space:]]*"v\([^"]*\)".*/\1/p' <<<"$source")"
+
+  if [ -z "$version" ]; then
+    printf 'Failed to resolve Bicep version for Radius %s\n' "$rev" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "$version"
+}
+
+prefetch_bicep_hash() {
+  local version="$1"
+  local asset="$2"
+
+  nix store prefetch-file --json "https://github.com/Azure/bicep/releases/download/v${version}/${asset}" | jq -r '.hash'
+}
+
+update_bicep() {
+  local version="$1"
+  local old_version x86_64_linux_hash aarch64_linux_hash aarch64_darwin_hash tmp
+
+  old_version="$(current_bicep_version)"
+  x86_64_linux_hash="$(prefetch_bicep_hash "$version" bicep-linux-x64)"
+  aarch64_linux_hash="$(prefetch_bicep_hash "$version" bicep-linux-arm64)"
+  aarch64_darwin_hash="$(prefetch_bicep_hash "$version" bicep-osx-arm64)"
+
+  tmp="$(mktemp)"
+  jq \
+    --arg version "$version" \
+    --arg x86_64_linux_hash "$x86_64_linux_hash" \
+    --arg aarch64_linux_hash "$aarch64_linux_hash" \
+    --arg aarch64_darwin_hash "$aarch64_darwin_hash" \
+    '.bicep.version = $version | .bicep.hashes."x86_64-linux" = $x86_64_linux_hash | .bicep.hashes."aarch64-linux" = $aarch64_linux_hash | .bicep.hashes."aarch64-darwin" = $aarch64_darwin_hash' \
+    "$sources_file" >"$tmp"
+  mv "$tmp" "$sources_file"
+
+  if ! grep -Fq "Bicep-${old_version}-blue" "$readme_file" || ! grep -Fq "/tag/v${old_version})" "$readme_file"; then
+    printf 'Failed to find Bicep %s badge in %s\n' "$old_version" "$readme_file" >&2
+    exit 1
+  fi
+
+  sed -i \
+    -e "s/Bicep-${old_version}-blue/Bicep-${version}-blue/" \
+    -e "s#/tag/v${old_version})#/tag/v${version})#" \
+    "$readme_file"
 }
 
 update_source_field() {
@@ -140,9 +198,18 @@ stable_rev="$(gh api repos/radius-project/radius/releases --jq 'map(select(.draf
 rc_rev="$(gh api repos/radius-project/radius/releases --jq 'map(select(.draft == false and .prerelease == true)) | first.tag_name')"
 stable_commit="$(resolve_tag_commit "$stable_rev")"
 rc_commit="$(resolve_tag_commit "$rc_rev")"
+stable_bicep_version="$(resolve_bicep_version "$stable_rev")"
+rc_bicep_version="$(resolve_bicep_version "$rc_rev")"
+
+if [ "$stable_bicep_version" != "$rc_bicep_version" ]; then
+  printf 'Radius %s pins Bicep %s, but %s pins Bicep %s\n' \
+    "$stable_rev" "$stable_bicep_version" "$rc_rev" "$rc_bicep_version" >&2
+  exit 1
+fi
 
 stable_changed=false
 rc_changed=false
+bicep_changed=false
 
 if [ "$(current_rev stable)" != "$stable_rev" ] || [ "$(current_commit stable)" != "$stable_commit" ]; then
   stable_changed=true
@@ -152,7 +219,11 @@ if [ "$(current_rev rc)" != "$rc_rev" ] || [ "$(current_commit rc)" != "$rc_comm
   rc_changed=true
 fi
 
-if ! $stable_changed && ! $rc_changed; then
+if [ "$(current_bicep_version)" != "$stable_bicep_version" ]; then
+  bicep_changed=true
+fi
+
+if ! $stable_changed && ! $rc_changed && ! $bicep_changed; then
   set_output should_update false
   exit 0
 fi
@@ -170,6 +241,10 @@ if $rc_changed; then
   update_channel rc "$rc_rev" .#rad-rc-unwrapped
 fi
 
+if $bicep_changed; then
+  update_bicep "$stable_bicep_version"
+fi
+
 nix build .#rad --no-link >/dev/null
 nix build .#rad-rc --no-link >/dev/null
 
@@ -184,6 +259,13 @@ if $rc_changed; then
     commit_message="${commit_message} and"
   fi
   commit_message="${commit_message} rc to ${rc_rev}"
+fi
+
+if $bicep_changed; then
+  if $stable_changed || $rc_changed; then
+    commit_message="${commit_message} and"
+  fi
+  commit_message="${commit_message} bicep to v${stable_bicep_version}"
 fi
 
 set_output should_update true

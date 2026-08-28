@@ -6,20 +6,21 @@
   stdenv,
   stdenvNoCC,
   fetchurl,
+  source,
 }: let
-  version = "0.41.2";
+  inherit (source) version;
   releases = {
     x86_64-linux = {
       asset = "bicep-linux-x64";
-      hash = "sha256-z+UlMvd9nRgzKffpSn/JJooY19nbqp7CjWMnNM2/1Y4=";
+      hash = source.hashes."x86_64-linux";
     };
     aarch64-linux = {
       asset = "bicep-linux-arm64";
-      hash = "sha256-b647nzGYUDH5GWVT0vEieZ3aFzr7gidwrmQ1if70nQo=";
+      hash = source.hashes."aarch64-linux";
     };
     aarch64-darwin = {
       asset = "bicep-osx-arm64";
-      hash = "sha256-/Mz9lbkq56qavFZMOBPB1HMIkXNdLhVQiVB/LYSSfC8=";
+      hash = source.hashes."aarch64-darwin";
     };
   };
   release =
