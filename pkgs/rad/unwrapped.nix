@@ -1,6 +1,6 @@
 {
   lib,
-  buildGo126Module,
+  buildGo127Module,
   fetchFromGitHub,
   source,
 }: let
@@ -11,7 +11,7 @@
     else builtins.head (builtins.match "([0-9]+\\.[0-9]+)\\..*" release);
   versionPackage = "github.com/radius-project/radius/pkg/version";
 in
-  buildGo126Module {
+  buildGo127Module {
     pname = "rad-unwrapped";
     inherit (source) version;
 

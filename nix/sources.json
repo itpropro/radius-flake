@@ -8,11 +8,11 @@
     }
   },
   "stable": {
-    "commit": "694528df87202b3f092ad0a9e81adaebd4e49a8b",
-    "version": "0.60.0",
-    "rev": "v0.60.0",
-    "srcHash": "sha256-s6qZdTmRVF9IAQ7tvw+DY1fQdvmhY0JX15N//Ct0YRI=",
-    "vendorHash": "sha256-gAoUabr4rmGr+tU5fSRaB83SYk+11xYcMIRNI2wll1w="
+    "commit": "a3916f884df2e412c4cb662db63132bcf1344ca8",
+    "version": "0.60.2",
+    "rev": "v0.60.2",
+    "srcHash": "sha256-TSlPS3roOBtFlJgbVISwyBQ56GNRh4lqWZkfKj+9Mc4=",
+    "vendorHash": "sha256-2f8NqpuYl/nqteawKHrnrsdp9+x9btyQuDdhVPsasbc="
   },
   "rc": {
     "commit": "fe4a2bf0f1c20ec4d57f99e2412bbba71aaa9fda",
