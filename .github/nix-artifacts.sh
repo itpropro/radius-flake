@@ -9,6 +9,15 @@ roots() {
   printf '%s\n' "$checks" "$packages" | jq -sr 'add | unique | .[]'
 }
 
+build_outputs() {
+  local system names name
+  local installables=( .#rad .#rad-rc .#bicep )
+  system="$(nix eval --impure --raw --expr builtins.currentSystem)"
+  names="$(nix eval --json ".#checks.$system" --apply builtins.attrNames | jq -r '.[]')"
+  while IFS= read -r name; do installables+=(".#checks.$system.$name"); done <<< "$names"
+  nix build --no-link --print-out-paths "${installables[@]}"
+}
+
 resolve() {
   local repository head tree runs run attempt artifacts commits tested_commit commit
   repository="repos/$GITHUB_REPOSITORY"
@@ -67,9 +76,10 @@ import_outputs() {
 }
 
 case "${1:-}" in
+  build) build_outputs ;;
   resolve) resolve ;;
   export) export_outputs ;;
   import) import_outputs ;;
   roots) roots ;;
-  *) echo 'Usage: nix-artifacts.sh {resolve|export|import|roots}' >&2; exit 1 ;;
+  *) echo 'Usage: nix-artifacts.sh {build|resolve|export|import|roots}' >&2; exit 1 ;;
 esac
