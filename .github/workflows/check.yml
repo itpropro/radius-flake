@@ -10,6 +10,8 @@ on:
       - "nix/sources.json"
       - ".github/workflows/*.yml"
       - ".github/update-radius.sh"
+      - ".github/nix-artifacts.sh"
+      - ".github/tests/test_nix_artifacts.py"
   pull_request:
     paths:
       - "**/*.nix"
@@ -17,12 +19,41 @@ on:
       - "nix/sources.json"
       - ".github/workflows/*.yml"
       - ".github/update-radius.sh"
+      - ".github/nix-artifacts.sh"
+      - ".github/tests/test_nix_artifacts.py"
 
 permissions:
   contents: read
+  actions: read
+
+concurrency:
+  group: flake-check-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      run-id: ${{ steps.artifacts.outputs.run-id }}
+      artifact-suffix: ${{ steps.artifacts.outputs.artifact-suffix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Test artifact selection
+        run: python3 .github/tests/test_nix_artifacts.py
+
+      - name: Find tested PR outputs
+        id: artifacts
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/nix-artifacts.sh resolve
+
   check:
+    needs: prepare
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,15 +64,7 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@51f3067b56fe8ae331890c77d4e454f6d60615ff # v31.10.2
 
-      - name: Configure Cachix for pushes
-        if: github.event_name == 'push'
-        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
-        with:
-          name: itpropro
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-
-      - name: Configure Cachix for pull requests
-        if: github.event_name == 'pull_request'
+      - name: Configure Cachix
         uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: itpropro
@@ -59,10 +82,47 @@ jobs:
           nix eval '.#packages.aarch64-darwin."rad-rc".meta.mainProgram' >/dev/null
           nix eval '.#packages.aarch64-darwin.bicep.meta.mainProgram' >/dev/null
 
+      - name: Download tested Nix outputs
+        if: needs.prepare.outputs.run-id != ''
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: nix-x86_64-linux-${{ needs.prepare.outputs.artifact-suffix }}
+          path: ${{ runner.temp }}/nix-artifact
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.prepare.outputs.run-id }}
+
+      - name: Import tested Nix outputs
+        if: needs.prepare.outputs.run-id != ''
+        run: bash .github/nix-artifacts.sh import
+
       - name: Run flake checks
         run: nix flake check
 
+      - name: Export tested Nix outputs
+        id: artifact
+        if: github.event_name == 'pull_request'
+        run: bash .github/nix-artifacts.sh export
+
+      - name: Upload tested Nix outputs
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ steps.artifact.outputs.artifact-name }}
+          path: ${{ runner.temp }}/nix-artifact/store.nar.gz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Publish outputs to Cachix
+        if: github.event_name == 'push'
+        env:
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          bash .github/nix-artifacts.sh roots | cachix push itpropro
+
   check-linux-arm64:
+    needs: prepare
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
@@ -73,24 +133,53 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@51f3067b56fe8ae331890c77d4e454f6d60615ff # v31.10.2
 
-      - name: Configure Cachix for pushes
-        if: github.event_name == 'push'
-        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
-        with:
-          name: itpropro
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-
-      - name: Configure Cachix for pull requests
-        if: github.event_name == 'pull_request'
+      - name: Configure Cachix
         uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: itpropro
           skipPush: true
 
+      - name: Download tested Nix outputs
+        if: needs.prepare.outputs.run-id != ''
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: nix-aarch64-linux-${{ needs.prepare.outputs.artifact-suffix }}
+          path: ${{ runner.temp }}/nix-artifact
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.prepare.outputs.run-id }}
+
+      - name: Import tested Nix outputs
+        if: needs.prepare.outputs.run-id != ''
+        run: bash .github/nix-artifacts.sh import
+
       - name: Run flake checks
         run: nix flake check --print-build-logs
 
+      - name: Export tested Nix outputs
+        id: artifact
+        if: github.event_name == 'pull_request'
+        run: bash .github/nix-artifacts.sh export
+
+      - name: Upload tested Nix outputs
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ steps.artifact.outputs.artifact-name }}
+          path: ${{ runner.temp }}/nix-artifact/store.nar.gz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Publish outputs to Cachix
+        if: github.event_name == 'push'
+        env:
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          bash .github/nix-artifacts.sh roots | cachix push itpropro
+
   check-darwin:
+    needs: prepare
     runs-on: macos-26
     steps:
       - name: Checkout
@@ -101,25 +190,53 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@51f3067b56fe8ae331890c77d4e454f6d60615ff # v31.10.2
 
-      - name: Configure Cachix for pushes
-        if: github.event_name == 'push'
-        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
-        with:
-          name: itpropro
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-
-      - name: Configure Cachix for pull requests
-        if: github.event_name == 'pull_request'
+      - name: Configure Cachix
         uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: itpropro
           skipPush: true
+
+      - name: Download tested Nix outputs
+        if: needs.prepare.outputs.run-id != ''
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: nix-aarch64-darwin-${{ needs.prepare.outputs.artifact-suffix }}
+          path: ${{ runner.temp }}/nix-artifact
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.prepare.outputs.run-id }}
+
+      - name: Import tested Nix outputs
+        if: needs.prepare.outputs.run-id != ''
+        run: bash .github/nix-artifacts.sh import
 
       - name: Run flake checks
         run: nix flake check --print-build-logs
 
       - name: Run Bicep
         run: nix run .#bicep -- --version
+
+      - name: Export tested Nix outputs
+        id: artifact
+        if: github.event_name == 'pull_request'
+        run: bash .github/nix-artifacts.sh export
+
+      - name: Upload tested Nix outputs
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ steps.artifact.outputs.artifact-name }}
+          path: ${{ runner.temp }}/nix-artifact/store.nar.gz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Publish outputs to Cachix
+        if: github.event_name == 'push'
+        env:
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          bash .github/nix-artifacts.sh roots | cachix push itpropro
 
   release:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
