@@ -195,7 +195,7 @@ update_channel() {
 }
 
 stable_rev="$(gh api repos/radius-project/radius/releases --jq 'map(select(.draft == false and .prerelease == false)) | first.tag_name')"
-rc_rev="$(gh api repos/radius-project/radius/releases --jq 'map(select(.draft == false and .prerelease == true)) | first.tag_name')"
+rc_rev="$(gh api repos/radius-project/radius/releases --jq 'map(select(.draft == false and .prerelease == true and (.tag_name | test("-rc[0-9]+$")))) | first.tag_name')"
 stable_commit="$(resolve_tag_commit "$stable_rev")"
 rc_commit="$(resolve_tag_commit "$rc_rev")"
 stable_bicep_version="$(resolve_bicep_version "$stable_rev")"
