@@ -194,8 +194,21 @@ update_channel() {
   nix build "$package_attr" --no-link >/dev/null
 }
 
-stable_rev="$(gh api repos/radius-project/radius/releases --jq 'map(select(.draft == false and .prerelease == false)) | first.tag_name')"
-rc_rev="$(gh api repos/radius-project/radius/releases --jq 'map(select(.draft == false and .prerelease == true and (.tag_name | test("-rc[0-9]+$")))) | first.tag_name')"
+# The releases API orders by creation date, so pick the highest version.
+# RC tags are vX.Y.Z-rc.N since 0.62 and vX.Y.Z-rcN before.
+latest_release() {
+  local prerelease="$1"
+  local pattern="$2"
+
+  gh api 'repos/radius-project/radius/releases?per_page=100' |
+    jq -r --argjson prerelease "$prerelease" --arg pattern "$pattern" '
+      map(select(.draft == false and .prerelease == $prerelease and (.tag_name | test($pattern))))
+      | max_by(.tag_name | [scan("[0-9]+") | tonumber])
+      | .tag_name // error("No Radius release matches \($pattern)")'
+}
+
+stable_rev="$(latest_release false '^v[0-9]+\.[0-9]+\.[0-9]+$')"
+rc_rev="$(latest_release true '^v[0-9]+\.[0-9]+\.[0-9]+-rc\.?[0-9]+$')"
 stable_commit="$(resolve_tag_commit "$stable_rev")"
 rc_commit="$(resolve_tag_commit "$rc_rev")"
 stable_bicep_version="$(resolve_bicep_version "$stable_rev")"
