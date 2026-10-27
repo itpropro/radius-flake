@@ -15,10 +15,10 @@
     "vendorHash": "sha256-wnT2hH+gsdhfr1JIrftXx/BC1CPtA9MSapBVVVs5kZg="
   },
   "rc": {
-    "commit": "af1e3f0fad097d13de5e139a8129c5eec88b058b",
-    "version": "0.62.0-rc.3",
-    "rev": "v0.62.0-rc.3",
-    "srcHash": "sha256-D6qcAd4iHabBxCPH+ej4w96e68uR0wfyjqUKZqVlWqo=",
-    "vendorHash": "sha256-v3xw/cISLC8106gioN8iKSlD2MvrspcJgX3wWuAKFAs="
+    "commit": "8b1a8970d90ee45979f1b19519969897cdac0440",
+    "version": "0.62.0-rc.5",
+    "rev": "v0.62.0-rc.5",
+    "srcHash": "sha256-rt1RqGDMjqM2q63yOljwwYiIdCjxCa1lJwztt5KN/y0=",
+    "vendorHash": "sha256-+41lzV4rRMP7Ek7gN12ys3eVocWUdpYIUgsstvU1Fg4="
   }
 }
