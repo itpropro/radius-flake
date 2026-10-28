@@ -8,17 +8,17 @@
     }
   },
   "stable": {
-    "commit": "b913c13618039677b8727a2063cc853142cdb7c9",
-    "version": "0.61.1",
-    "rev": "v0.61.1",
-    "srcHash": "sha256-RpNZZgZvKiXkcEgsDfpng5E6gt9TqoqW/fW4ZJJdBe4=",
-    "vendorHash": "sha256-wnT2hH+gsdhfr1JIrftXx/BC1CPtA9MSapBVVVs5kZg="
+    "commit": "37a8cbd33e990886460f4fd1987d6a4fefd901c5",
+    "version": "0.62.0",
+    "rev": "v0.62.0",
+    "srcHash": "sha256-xOeals/8gFkdUVsIpC9cTKrG7XoBaFkE2gU05VHfgl0=",
+    "vendorHash": "sha256-+41lzV4rRMP7Ek7gN12ys3eVocWUdpYIUgsstvU1Fg4="
   },
   "rc": {
-    "commit": "8b1a8970d90ee45979f1b19519969897cdac0440",
-    "version": "0.62.0-rc.5",
-    "rev": "v0.62.0-rc.5",
-    "srcHash": "sha256-rt1RqGDMjqM2q63yOljwwYiIdCjxCa1lJwztt5KN/y0=",
+    "commit": "422503c6d65b9e593ed7a5c50f9344608c638e4f",
+    "version": "0.62.0-rc.6",
+    "rev": "v0.62.0-rc.6",
+    "srcHash": "sha256-mN2ADNELfVL6+Em9Wk+GjykqqPHqHRmocz3ISP4KXlc=",
     "vendorHash": "sha256-+41lzV4rRMP7Ek7gN12ys3eVocWUdpYIUgsstvU1Fg4="
   }
 }
